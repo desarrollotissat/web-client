@@ -97,9 +97,9 @@ MEDIA_ROOT = (
 
 #url to conect
 URL_STACKSYNC_OLD = 'https://cloudspaces.urv.cat:8080/v1/AUTH_e685194ffd724f55bd7f6ad14dc5bec7/stacksync'
-URL_STACKSYNC = 'http://api.stacksync.com:8080/v1'
+URL_STACKSYNC = 'http://192.168.56.101:8080/v1'
 STACKSYNC_CONSUMER_KEY = "b3af4e669daf880fb16563e6f36051b105188d413"
 STACKSYNC_CONSUMER_SECRET = "c168e65c18d75b35d8999b534a3776cf"
-STACKSYNC_REQUEST_TOKEN_ENDPOINT = "http://api.stacksync.com:8080/oauth/request_token"
-STACKSYNC_ACCESS_TOKEN_ENDPOINT = "http://api.stacksync.com:8080/oauth/access_token"
-STACKSYNC_AUTHORIZE_ENDPOINT = "http://api.stacksync.com:8080/oauth/authorize"
+STACKSYNC_REQUEST_TOKEN_ENDPOINT = "http://192.168.56.101:8080/oauth/request_token"
+STACKSYNC_ACCESS_TOKEN_ENDPOINT = "http://192.168.56.101:8080/oauth/access_token"
+STACKSYNC_AUTHORIZE_ENDPOINT = "http://192.168.56.101:8080/oauth/authorize"

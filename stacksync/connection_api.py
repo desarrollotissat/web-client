@@ -142,23 +142,23 @@ class Api:
         r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
     
         return r.content
- 
- 
+
     def download_pdf(self, file_id, access_token_key, access_token_secret):
-         
+
         headers = {'Stacksync-api': 'v2'}
         headeroauth = OAuth1(settings.STACKSYNC_CONSUMER_KEY, settings.STACKSYNC_CONSUMER_SECRET,
                  access_token_key, access_token_secret,
                  signature_type='auth_header', signature_method='PLAINTEXT')
-         
+
         url = settings.URL_STACKSYNC + '/file/'+file_id+'/data'
-        
+
         r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
 
         content_type = r.headers.get('content-type')
         pdf64 = b64encode(r.content)
         pdf = "data:"+content_type+";base64,"+pdf64
         return pdf
+
     def download_img(self, file_id, access_token_key, access_token_secret):
  
         headers = {'Stacksync-api': 'v2'}
@@ -220,3 +220,31 @@ class Api:
             json_data = json.loads(r.content)
  
         return response
+
+    def share_folder(self, folder_id, allowed_user_emails=[], access_token_key=None, access_token_secret=None):
+        headers = {'Stacksync-api': 'v2', 'Content-Type': 'application/json'}
+        headeroauth = OAuth1(settings.STACKSYNC_CONSUMER_KEY, settings.STACKSYNC_CONSUMER_SECRET,
+                 access_token_key, access_token_secret,
+                 signature_type='auth_header', signature_method='PLAINTEXT')
+        url = settings.URL_STACKSYNC + '/folder/' + str(folder_id) + '/share'
+        # payload = {'share_to': allowed_user_emails}
+        json_payload = json.dumps(allowed_user_emails)
+
+        r = requests.post(url, data=json_payload, auth=headeroauth, headers=headers)
+        return r
+
+    def get_members_of_folder(self, folder_id, access_token_key=None, access_token_secret=None):
+        headers = {'Stacksync-api': 'v2', 'Content-Type': 'application/json'}
+        headeroauth = OAuth1(settings.STACKSYNC_CONSUMER_KEY, settings.STACKSYNC_CONSUMER_SECRET,
+                 access_token_key, access_token_secret,
+                 signature_type='auth_header', signature_method='PLAINTEXT')
+        url = settings.URL_STACKSYNC + '/folder/' + str(folder_id) + '/members'
+        response = requests.get(url, auth=headeroauth, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            response.reason = response.reason + ". "+response.content
+            response.raise_for_status()
+
+
