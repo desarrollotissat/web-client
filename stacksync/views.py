@@ -308,4 +308,6 @@ def share_folder(request, folder_id):
     json_response = json.dumps(message)
     return HttpResponse(json_response)
 
-
+def get_members_of_folder(request, folder_id):
+    json_response = connect.get_members_of_folder(folder_id, request.session['access_token_key'], request.session['access_token_secret'])
+    return HttpResponse(json.dumps(json_response))
