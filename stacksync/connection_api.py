@@ -227,7 +227,6 @@ class Api:
                  access_token_key, access_token_secret,
                  signature_type='auth_header', signature_method='PLAINTEXT')
         url = settings.URL_STACKSYNC + '/folder/' + str(folder_id) + '/share'
-        # payload = {'share_to': allowed_user_emails}
         json_payload = json.dumps(allowed_user_emails)
 
         r = requests.post(url, data=json_payload, auth=headeroauth, headers=headers)

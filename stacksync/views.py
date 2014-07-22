@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.shortcuts import render
 
 from stacksync.forms import contact_form, file_form
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.mail import EmailMessage
@@ -276,14 +278,34 @@ def pdf(request, file_id):
 def img(request, file_id):
     user = request.session['email']
     image = connect.download_img(file_id, request.session['access_token_key'], request.session['access_token_secret'])
-    return render(request,'img.html', {'user':user  , 'file_id': file_id, 'img':image})
- 
+    return render(request,'img.html', {'user': user, 'file_id': file_id, 'img':image})
+
 def log_out(request):
     del request.session['access_token_key']
     del request.session['access_token_secret']
     del request.session['email']
     return HttpResponseRedirect('/log_in')
-# 
-# 
-# 
+
+
+def share_folder(request, folder_id):
+    unformatted_users = request.POST.getlist('email_list[]', [])
+
+    try:
+        addresees = [user.strip() for user in unformatted_users]
+        [validate_email(user) for user in addresees]
+        response = connect.share_folder(folder_id, addresees, request.session['access_token_key'], request.session['access_token_secret'])
+
+        message = {'status_code': response.status_code, 'content': response.content}
+        # if 200 < response.status_code < 300:
+            # registered_addresees = json.loads(response.content)
+            # message['content'] = json.dumps(registered_addresees['shared_to'])
+
+    except ValidationError as e:
+        message = str(e) + user
+    except Exception as ex:
+        message = str(ex)
+
+    json_response = json.dumps(message)
+    return HttpResponse(json_response)
+
 

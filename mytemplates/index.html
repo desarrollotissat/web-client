@@ -91,8 +91,7 @@
 	$(function() {
 		$.extend($.tablesorter.themes.bootstrap, {
 		// these classes are added to the table. To see other table classes available,
-		
-		table : 'table table-striped table-hover',	  
+		    table : 'table table-striped table-hover'
 		});
 		// call the tablesorter plugin and apply the uitheme widget
 		$("table").tablesorter({
@@ -115,7 +114,7 @@
 			// set the uitheme widget to use the bootstrap theme class names
 			// this is no longer required, if theme is set
 			// ,uitheme : "bootstrap"
-	  	}
+	  	    }
 	  	})
 	});
 </script>
@@ -135,9 +134,9 @@
 		
                 // Prevents the default action to be triggered. 
                 e.preventDefault();
-		var rand = Math.round(Math.random() * 6);
-		document.getElementById("imagepop").src='media/temporaryfile?dummy='+rand;
-		var file_id = $(this).attr('id')
+                var rand = Math.round(Math.random() * 6);
+                document.getElementById("imagepop").src='media/temporaryfile?dummy='+rand;
+                var file_id = $(this).attr('id');
 		
                 // Triggering bPopup when click event is fired
                 $('#element_to_pop_up').bPopup();
@@ -149,6 +148,24 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var csrftoken = getCookie('csrftoken');
+
     $('td.showContext').contextMenu('myMenu1', {
       bindings: {
         'delete': function (t) {
@@ -157,13 +174,13 @@
         'download': function (t) {
           document.location.href = '/download/'+t.id;
         },
-	'rename': function (t) {
+	    'rename': function (t) {
           var newName = prompt("Enter the new name : ", "new name");
           document.location.href = '/rename_file/'+t.id+'/'+newName;
           
         },
-	'move': function (t) {
-	  var str = "root";
+	    'move': function (t) {
+	      var str = "root";
           var popy = window.open('/move/'+str,'popup_form','location=no,menubar=no,status=no,top=50%,left=50%,height=550,width=750');
         }
       }
@@ -173,13 +190,33 @@
         'delete': function (t) {
           document.location.href = '/delete_folder/'+t.id;
         },
-	'rename': function (t) {
+	    'rename': function (t) {
           var newName = prompt("Enter the new name : ", "new name");
           document.location.href = '/rename_folder/'+t.id+'/'+newName; 
         },
-	'move': function (t) {
+	    'move': function (t) {
           var str = "root";
           var popy = window.open('/move/'+str,'popup_form','location=no,menubar=no,status=no,top=50%,left=50%,height=550,width=750');
+        },
+        'share': function(t){
+            var unformatted_users = prompt("Enter a list of emails to share be with: \n\nExample: foo@bar.com, walter.smith@stacksync.com", "foo@bar.com, walter.smith@stacksync.com");
+            var users = unformatted_users.split(",");
+            $.post( "/share/"+ t.id, { csrfmiddlewaretoken: csrftoken, email_list: users },function( data ) {
+                var data = jQuery.parseJSON(data);
+                if (data.status_code > 200 && data.status_code < 300){
+                    var contents = jQuery.parseJSON(data.content);
+                    var message = 'You have shared this folder with the following users:\n';
+                    $.each( contents.shared_to, function( key, value ) {
+                        message +=  value.email + "\n";
+                    });
+
+                } else {
+                    message = data.content
+                }
+                alert(message);
+
+            });
+
         }
       }
     });
@@ -188,8 +225,8 @@
 
 <div class="contextMenu" id="myMenu1">
 	<ul>
-    		<li id="delete"><span class="glyphicon glyphicon-remove" ></span> Delete</li>
-    		<li id="download"><span class="glyphicon glyphicon-cloud-download" ></span> Download</li>
+    	<li id="delete"><span class="glyphicon glyphicon-remove" ></span> Delete</li>
+    	<li id="download"><span class="glyphicon glyphicon-cloud-download" ></span> Download</li>
 		<li id="rename"><span class="glyphicon glyphicon-pencil" ></span> Rename</li>
 		<li id="move"><span class="glyphicon glyphicon-folder-open" ></span> Move</li>
     	</ul>
@@ -200,6 +237,7 @@
     	<li id="delete"><span class="glyphicon glyphicon-remove" ></span> Delete</li>
 		<li id="rename"><span class="glyphicon glyphicon-pencil" ></span> Rename</li>
 		<li id="move"><span class="glyphicon glyphicon-folder-open" ></span> Move</li>
+        <li id="share"><span class="glyphicon glyphicon glyphicon-share" ></span> Share</li>
     	</ul>
 </div>
 
