@@ -94,8 +94,7 @@
 				this.on("dragleave", function(){$('#imgSwitch').css('display', 'none')});
 				this.on("sending", function(file, xhr, formData) {formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');});
 				this.on("complete", function (file) {doChange = false; window.location.reload();});
-				this.on("uploadprogress", function (file) {$(window).bind('beforeunload', function(){ if(doChange) {return 'This page is asking you to confirm that you want to leave: data you have entered may not be saved.';}
-});});
+				this.on("uploadprogress", function (file) {$(window).bind('beforeunload', function(){ if(doChange) {return 'This page is asking you to confirm that you want to leave: data you have entered may not be saved.';}});});
 			}
 		});
 		

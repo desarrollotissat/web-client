@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 {% block titulo %}Bienvenido{% endblock %}
 {% block encabezado %} 
-
+<link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-tagsinput.css">
+<link rel="stylesheet" href="{{STATIC_URL}}js/jgrowl-master/jquery.jgrowl.css">
+    <link rel="stylesheet" href="{{STATIC_URL}}css/web-index.css">
 <script src="{{STATIC_URL}}js/jquery.tablesorter.js"></script>
 <script src="{{STATIC_URL}}js/jquery.tablesorter.widgets.js"></script>
+<script src="{{STATIC_URL}}js/tags/bootstrap-tagsinput.js"></script>
+    <script src="{{STATIC_URL}}js/jgrowl-master/jquery.jgrowl.min.js"></script>
 
 
 <div class="row">
@@ -124,26 +128,6 @@
 	});
 </script>
 
-<script type="text/javascript">
-         // DOM Ready
-        $(function() {
-
-            // Binding a click event
-            // From jQuery v.1.7.0 use .on() instead of .bind()
-            $('.popup-opener').on('click', function(e) {
-		
-                // Prevents the default action to be triggered. 
-                e.preventDefault();
-                var rand = Math.round(Math.random() * 6);
-                document.getElementById("imagepop").src='media/temporaryfile?dummy='+rand;
-                var file_id = $(this).attr('id');
-		
-                // Triggering bPopup when click event is fired
-                $('#element_to_pop_up').bPopup();
-            });
-        });
-</script>
-
 </div>
 
 <script type="text/javascript">
@@ -166,41 +150,54 @@
     }
     var csrftoken = getCookie('csrftoken');
 
+{#    $('#folder-members').tagsinput({#}
+{#        confirmKeys: [13, 32]#}
+{#    });#}
+{##}
+{#    $('#folder-members').tagsinput('refresh');#}
 
-      function get_folder_members(folder){
-          $.getJSON( "/members/"+folder.id, function( data ) {
-              var message = display_folder_members(data);
-              alert(message);
-          });
-      }
 
-      function display_folder_members(list_of_users) {
-          var message = "You haven't shared this folder with anyone";
-          if (list_of_users.length > 1){
-               message = 'You have shared this folder with the following users:\n';
+    function get_folder_members(folder){
+          $.getJSON( "/members/"+folder.id, function( list_of_users ) {
+              $('#folder-members').tagsinput('removeAll');
               $.each(list_of_users, function (key, value) {
-                  message += value.email + "\n";
+                  if (list_of_users.length > 1) {
+                      $('#folder-members').tagsinput('add', value.email);
+                  }
               });
-          }
+          });
+    }
+
+    function display_folder_members(list_of_users) {
+          var message = 'You have shared this folder with the following users:\n';
+
+          $.each(list_of_users, function (key, value) {
+              message += value.email + "\n";
+          });
 
           return message;
+    }
 
-      }
-
-     function share_folder(folder, users){
+    function share_folder(folder, users){
          $.post("/share/"+ folder.id, { csrfmiddlewaretoken: csrftoken, email_list: users },function( data ) {
              var data = jQuery.parseJSON(data);
              var message = '';
              if (data.status_code > 200 && data.status_code < 300){
                  var contents = jQuery.parseJSON(data.content);
                  message = display_folder_members(contents.shared_to);
+                 get_folder_members(folder);
+                  $.jGrowl(message, { sticky: true, theme: "jgrowl-success" });
              } else {
-                 message = data.content
+                 message = data.content;
+                  $.jGrowl(message, { sticky: true, theme: "jgrowl-error" });
              }
-             alert(message);
-         });
-     }
 
+         });
+    }
+
+     $( ".save-members" ).bind( "click", function(event) {
+         share_folder($('#save-member-button').data("folder"), $("select").tagsinput('items'));
+     });
 
     $('td.showContext').contextMenu('myMenu1', {
       bindings: {
@@ -235,14 +232,11 @@
           var popy = window.open('/move/'+str,'popup_form','location=no,menubar=no,status=no,top=50%,left=50%,height=550,width=750');
         },
         'share': function(t){
-            $.ajaxSetup({ async: false });
             get_folder_members(t);
-            var unformatted_users = prompt("Enter a list of emails to share be with: \n\nExample: foo@bar.com, walter.smith@stacksync.com", "foo@bar.com, walter.smith@stacksync.com");
-{#            var unformatted_users = "";#}
-            var users = unformatted_users.split(",");
-            share_folder(t, users);
-
-
+            $('#share-folder-modal').modal({
+                show: true
+            });
+            $('#save-member-button').data("folder", t);
         }
       }
     });
@@ -267,4 +261,26 @@
     	</ul>
 </div>
 
+<div class="modal fade" id="share-folder-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="text-align: center;">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title">Share folder</h4>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+
+          <p>Please enter the email addresses that the folder will be shared with.</p>
+
+          <select multiple data-role="tagsinput" id="folder-members">
+          </select>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+{#                                  <button type="button" class="btn btn-primary" id="save-members">Save changes</button>#}
+          <a class="btn btn-primary save-members" data-id="" id="save-member-button" role="button">Save changes</a>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 {% endblock %}
