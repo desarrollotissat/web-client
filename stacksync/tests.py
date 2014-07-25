@@ -13,10 +13,11 @@ class StacksyncAPIMockedTests(unittest.TestCase):
         self.connect = Api()
 
     def test_root_metadata(self):
-        with patch.object(requests, 'get', return_value=self.fake_request_response()):
-            with patch.object(json, 'loads', return_value=self.fake_metadata_contents()):
-                root_contents = self.connect.metadata(self.access_token, self.access_token_secret)
-                self.assertEquals(len(root_contents), 3)
+        requests.get = MagicMock(return_value=self.fake_request_response())
+        json.loads = MagicMock(return_value=self.fake_metadata_contents())
+
+        root_contents = self.connect.metadata(self.access_token, self.access_token_secret)
+        self.assertEquals(len(root_contents), 3)
 
     def fake_metadata_contents(self):
         return {u'status': None, u'mimetype': None, u'checksum': None, u'filename': u'root', u'is_root': True,
@@ -48,9 +49,9 @@ class StacksyncAPIMockedTests(unittest.TestCase):
         share_to = ["john.doe@yahoo.com", "walter.smith@stacksync.com"]
         # share_to = []
         folder_id = 9
-        with patch.object(requests, 'post', return_value=self.fake_post_share_to()):
-            response = self.connect.share_folder(folder_id, share_to, self.access_token, self.access_token_secret)
-            self.assertEquals(response.status_code, 201)
+        requests.post = MagicMock(return_value=self.fake_post_share_to())
+        response = self.connect.share_folder(folder_id, share_to, self.access_token, self.access_token_secret)
+        self.assertEquals(response.status_code, 201)
 
     def fake_post_share_to(self):
         response = MagicMock()
@@ -62,10 +63,11 @@ class StacksyncAPIMockedTests(unittest.TestCase):
     def test_get_members_of_shared_folder(self):
         share_to = ["al@al.com", "john.doe@yahoo.com", "walter.smith@stacksync.com", "foo@bar.com"]
         folder_id = 7
-        with patch.object(requests, 'post', return_value=self.get_fake_members_of_folder()):
-            response = self.connect.get_members_of_folder(folder_id, self.access_token, self.access_token_secret)
-            for user in response:
-                self.assertIn(user['email'], share_to)
+
+        requests.post = MagicMock(return_value=self.get_fake_members_of_folder())
+        response = self.connect.get_members_of_folder(folder_id, self.access_token, self.access_token_secret)
+        for user in response:
+            self.assertIn(user['email'], share_to)
 
     def get_fake_members_of_folder(self):
         return [{u'joined_at': u'2014-07-21', u'is_owner': False, u'name': u'walter', u'email': u'walter.smith@stacksync.com'},

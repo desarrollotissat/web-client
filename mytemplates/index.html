@@ -233,10 +233,10 @@
         },
         'share': function(t){
             get_folder_members(t);
+            $('#save-member-button').data("folder", t);
             $('#share-folder-modal').modal({
                 show: true
             });
-            $('#save-member-button').data("folder", t);
         }
       }
     });
