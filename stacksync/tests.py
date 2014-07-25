@@ -14,8 +14,6 @@ class StacksyncAPIMockedTests(unittest.TestCase):
 
     def test_root_metadata(self):
         requests.get = MagicMock(return_value=self.fake_request_response())
-        json.loads = MagicMock(return_value=self.fake_metadata_contents())
-
         root_contents = self.connect.metadata(self.access_token, self.access_token_secret)
         self.assertEquals(len(root_contents), 3)
 
@@ -38,7 +36,7 @@ class StacksyncAPIMockedTests(unittest.TestCase):
     def fake_request_response(self):
         request = MagicMock()
         request.status_code = 200
-        request.contents = '{"id":null,"parent_id":null,"filename":"root","is_folder":true,"status":null,"version":null,"checksum":null,"size":null,"mimetype":null,"is_root":true,"contents":[{"id":1,"parent_id":null,"filename":"null","is_folder":false,"status":"RENAMED","modified_at":"2014-07-04 12:42:21.238","version":2,"checksum":1249793342,"size":968,"mimetype":"text/x-python","chunks":[]},{"id":2,"parent_id":null,"filename":"foldi","is_folder":true,"status":"RENAMED","modified_at":"2014-07-04 12:47:18.632","version":2,"checksum":0,"size":0,"mimetype":"inode/directory","is_root":false},{"id":6,"parent_id":null,"filename":"ffff","is_folder":false,"status":"RENAMED","modified_at":"2014-07-18 13:19:09.388","version":2,"checksum":3037139449,"size":51,"mimetype":"text/plain","chunks":[]}]}'
+        request.content = json.dumps(self.fake_metadata_contents())
         return request
 
     def test_shared_folder(self):
