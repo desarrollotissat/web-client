@@ -1,42 +1,21 @@
 import json
 import requests
 from requests_oauthlib import OAuth1
-import os
-from stacksync.file_metadata import FileMetadata
+from stacksync.file_metadata import FileMetadataHelper
 from django.conf import settings
 from base64 import *
 
 
 class Api:
     ROOT_FOLDER = u'0'
+    DEFAULT_FILE_URL = settings.URL_STACKSYNC + '/file/'
+    DEFAULT_FOLDER_URL = settings.URL_STACKSYNC + '/folder/'
 
     def metadata(self, access_token_key, access_token_secret):
         return self.metadata_focus(self.ROOT_FOLDER, access_token_key, access_token_secret)
 
-    def create_FileMetadata(self, item):
-        fileMetadata = FileMetadata(item['filename'], item['modified_at'], item['id'],
-                                    item['is_folder'], item['size'], item['mimetype'])
-        return fileMetadata
-
-    def filter_metadata_by_type(self, file_list, folder_list, json_data):
-        """
-        Populates two lists, one of files and one of folders
-
-        :param file_list: List of FileMetadata objects, that map to a file type
-        :param folder_list: List of FileMetadata objects, that map to a folder type
-        :param json_data: input of json formatted data
-        :return:
-        """
-        for item in json_data['contents']:
-            fileMetadata = self.create_FileMetadata(item)
-            if item['is_folder']:
-                folder_list.append(fileMetadata)
-            else:
-                file_list.append(fileMetadata)
-
     def metadata_focus(self, folder_id, access_token_key, access_token_secret):
- 
-        url = settings.URL_STACKSYNC + '/folder/'+str(folder_id)+'/contents'
+        url = self.DEFAULT_FOLDER_URL + folder_id +'/contents'
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
         r = requests.get(url, auth=headeroauth, headers=headers)
  
@@ -45,15 +24,14 @@ class Api:
         folder_list = []
         file_list = []
         if response == 200:
-            r.json()
-            json_data = json.loads(r.content)
+            json_data = r.json()
+            file_metadata_helper = FileMetadataHelper(json_data)
 
             if folder_id != self.ROOT_FOLDER:
-                fileMetadata = self.create_FileMetadata(json_data)
-                folder_list.append(fileMetadata)
+                file_metadata_helper.add_initial_subfolder_metadata(folder_list)
 
-            self.filter_metadata_by_type(file_list, folder_list, json_data)
- 
+            file_metadata_helper.filter_metadata_by_type(file_list, folder_list)
+
         folder_list = folder_list + file_list
         return folder_list
  
@@ -77,7 +55,7 @@ class Api:
     def delete_file(self, file_id, access_token_key, access_token_secret):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
          
-        url = settings.URL_STACKSYNC + '/file/'+file_id
+        url = self.DEFAULT_FILE_URL+file_id
         r = requests.delete(url, auth=headeroauth, headers=headers)
 
         flist = self.metadata(access_token_key, access_token_secret)
@@ -85,14 +63,14 @@ class Api:
 
     def delete_folder(self, folder_id, access_token_key, access_token_secret):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
-        url = settings.URL_STACKSYNC + '/folder/'+folder_id
+        url = self.DEFAULT_FOLDER_URL+folder_id
         r = requests.delete(url, auth=headeroauth, headers=headers)
  
         return r.json
         
     def rename_folder(self, folder_id, folder_name, access_token_key, access_token_secret):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
-        url = settings.URL_STACKSYNC + '/folder/'+folder_id
+        url = self.DEFAULT_FOLDER_URL+folder_id
         if not folder_name or folder_name == "":
             return json.dumps({'error':'nothing to update'})
         
@@ -102,7 +80,7 @@ class Api:
     
     def rename_file(self, file_id, file_name, access_token_key, access_token_secret):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
-        url = settings.URL_STACKSYNC + '/file/'+file_id
+        url = self.DEFAULT_FILE_URL+file_id
         if not file_name or file_name == "":
             return json.dumps({'error':'nothing to update'})
         
@@ -114,7 +92,7 @@ class Api:
          
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
          
-        url = settings.URL_STACKSYNC + '/file/'+file_id+'/data'
+        url = self.DEFAULT_FILE_URL+file_id+'/data'
  
         r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
     
@@ -124,7 +102,7 @@ class Api:
 
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
 
-        url = settings.URL_STACKSYNC + '/file/'+file_id+'/data'
+        url = self.DEFAULT_FILE_URL+file_id+'/data'
 
         r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
 
@@ -137,7 +115,7 @@ class Api:
  
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
          
-        url = settings.URL_STACKSYNC + '/file/'+file_id+'/data'
+        url = self.DEFAULT_FILE_URL+file_id+'/data'
          
         r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
         content_type = r.headers.get('content-type')
@@ -149,17 +127,14 @@ class Api:
     def metadata_file(self, file_id, access_token_key, access_token_secret):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
          
-        url = settings.URL_STACKSYNC + '/file/'+file_id
- 
+        url = self.DEFAULT_FILE_URL+file_id
         r = requests.get(url, auth=headeroauth, headers=headers)
- 
         response = r.status_code
  
         flist = []
         if response == 200:
-            r.json()
-            json_data = json.loads(r.content)
- 
+            json_data = r.json()
+
             flist.append(json_data['mimetype'])
             flist.append(json_data['filename'])
  
@@ -180,14 +155,13 @@ class Api:
  
         response = r.status_code
         if response == 200:
-            r.json()
             json_data = json.loads(r.content)
  
         return response
 
     def share_folder(self, folder_id, allowed_user_emails=[], access_token_key=None, access_token_secret=None):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
-        url = settings.URL_STACKSYNC + '/folder/' + str(folder_id) + '/share'
+        url = self.DEFAULT_FOLDER_URL + str(folder_id) + '/share'
 
         json_payload = json.dumps(allowed_user_emails)
 
@@ -197,7 +171,7 @@ class Api:
     def get_members_of_folder(self, folder_id, access_token_key=None, access_token_secret=None):
 
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
-        url = settings.URL_STACKSYNC + '/folder/' + str(folder_id) + '/members'
+        url = self.DEFAULT_FOLDER_URL + str(folder_id) + '/members'
 
         response = requests.get(url, auth=headeroauth, headers=headers)
 
@@ -206,5 +180,3 @@ class Api:
         else:
             response.reason = response.reason + ". "+response.content
             response.raise_for_status()
-
-

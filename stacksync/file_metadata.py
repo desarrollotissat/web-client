@@ -12,10 +12,41 @@ class FileMetadata:
         self.size = size
         self.mimetype = mimetype
 
-    @staticmethod
-    def compute_size(json_content):
+
+class FileMetadataHelper:
+
+    def __init__(self, formatted_json_content):
+        self.json_content = formatted_json_content
+
+    def compute_size(self):
         total_size = 0
-        for item in json_content['contents']:
+        for item in self.json_content['contents']:
             total_size += item['size']
 
         return total_size
+
+    def create_FileMetadata(self, item):
+        fileMetadata = FileMetadata(item['filename'], item['modified_at'], item['id'],
+                                    item['is_folder'], item['size'], item['mimetype'])
+        return fileMetadata
+
+    def filter_metadata_by_type(self, file_list, folder_list):
+        """
+        Populates two lists, one of files and one of folders
+
+        :param file_list: List of FileMetadata objects, that map to a file type
+        :param folder_list: List of FileMetadata objects, that map to a folder type
+        :param json_data: input of json formatted data
+        :return:
+        """
+        for item in self.json_content['contents']:
+            fileMetadata = self.create_FileMetadata(item)
+            if item['is_folder']:
+                folder_list.append(fileMetadata)
+            else:
+                file_list.append(fileMetadata)
+
+    def add_initial_subfolder_metadata(self, folder_list):
+        fileMetadata = self.create_FileMetadata(self.json_content)
+        folder_list.append(fileMetadata)
+
