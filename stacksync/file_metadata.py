@@ -11,3 +11,11 @@ class FileMetadata:
         self.is_folder = is_folder
         self.size = size
         self.mimetype = mimetype
+
+    @staticmethod
+    def compute_size(json_content):
+        total_size = 0
+        for item in json_content['contents']:
+            total_size += item['size']
+
+        return total_size

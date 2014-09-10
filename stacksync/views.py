@@ -296,9 +296,6 @@ def share_folder(request, folder_id):
         response = connect.share_folder(folder_id, addresees, request.session['access_token_key'], request.session['access_token_secret'])
 
         message = {'status_code': response.status_code, 'content': response.content}
-        # if 200 < response.status_code < 300:
-            # registered_addresees = json.loads(response.content)
-            # message['content'] = json.dumps(registered_addresees['shared_to'])
 
     except ValidationError as e:
         message = str(e) + user
