@@ -180,3 +180,16 @@ class Api:
         else:
             response.reason = response.reason + ". "+response.content
             response.raise_for_status()
+
+    #
+    def get_folder_size(folder_list):
+        pass
+    #     total = 0
+    #     for item in folder_list:
+    #         if item['is_folder']:
+    #             total +=
+
+
+
+
+

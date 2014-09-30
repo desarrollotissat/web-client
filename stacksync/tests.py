@@ -4,7 +4,7 @@ from django.test import TestCase
 from mock import MagicMock, patch
 import requests
 from stacksync.connection_api import Api
-from stacksync.file_metadata import FileMetadata
+from stacksync.file_metadata import FileMetadata, FileMetadataHelper
 
 
 class StacksyncAPIMockedTests(unittest.TestCase):
@@ -79,11 +79,12 @@ class StacksyncAPIMockedTests(unittest.TestCase):
         pass
 
 
-class FileMetadataTests(unittest.TestCase):
+class FileMetadataHelperTests(unittest.TestCase):
 
     def test_compute_folder_size(self):
         d = '{"id":null,"parent_id":null,"filename":"root","is_folder":true,"status":null,"version":null,"checksum":null,"size":null,"mimetype":null,"is_root":true,"contents":[{"id":1,"parent_id":null,"filename":"create consumer_oauth.txt","is_folder":false,"status":"NEW","modified_at":"2014-07-04 12:42:21.238","version":1,"checksum":1249793342,"size":968,"mimetype":"text/x-python","chunks":[]},{"id":2,"parent_id":null,"filename":"carpeta","is_folder":true,"status":"NEW","modified_at":"2014-07-04 12:47:18.632","version":1,"checksum":0,"size":0,"mimetype":"inode/directory","is_root":false},{"id":9,"parent_id":null,"filename":"aa","is_folder":true,"status":"NEW","modified_at":"2014-07-21 13:22:21.797","version":1,"checksum":0,"size":0,"mimetype":"inode/directory","is_root":false}]}'
         json_content = json.loads(d)
-        total_size = FileMetadata.compute_size(json_content)
+        file_metadata_helper = FileMetadataHelper(json_content)
+        total_size = file_metadata_helper.compute_size()
 
         self.assertEquals(total_size, 968)
