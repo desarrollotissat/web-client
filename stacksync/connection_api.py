@@ -17,7 +17,7 @@ class Api:
     def metadata_focus(self, folder_id, access_token_key, access_token_secret):
         url = self.DEFAULT_FOLDER_URL + folder_id +'/contents'
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
-        r = requests.get(url, auth=headeroauth, headers=headers)
+        r = requests.get(url, auth=headeroauth, headers=headers, verify=False)
  
         response = r.status_code
  
@@ -43,7 +43,7 @@ class Api:
         else:
             url = settings.URL_STACKSYNC + '/file?name='+name
 
-        r = requests.post(url,data=files, auth=headeroauth, headers=headers)
+        r = requests.post(url,data=files, auth=headeroauth, headers=headers, verify=False)
 
     def get_oauth_headers(self, access_token_key, access_token_secret):
         headers = {'Stacksync-api': 'v2', 'Content-Type': 'application/json'}
@@ -56,7 +56,7 @@ class Api:
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
          
         url = self.DEFAULT_FILE_URL+file_id
-        r = requests.delete(url, auth=headeroauth, headers=headers)
+        r = requests.delete(url, auth=headeroauth, headers=headers, verify=False)
 
         flist = self.metadata(access_token_key, access_token_secret)
         return flist
@@ -64,7 +64,7 @@ class Api:
     def delete_folder(self, folder_id, access_token_key, access_token_secret):
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
         url = self.DEFAULT_FOLDER_URL+folder_id
-        r = requests.delete(url, auth=headeroauth, headers=headers)
+        r = requests.delete(url, auth=headeroauth, headers=headers, verify=False)
  
         return r.json
         
@@ -75,7 +75,7 @@ class Api:
             return json.dumps({'error':'nothing to update'})
         
         data = json.dumps({'name':folder_name})
-        r = requests.put(url, data=data, auth=headeroauth, headers=headers)
+        r = requests.put(url, data=data, auth=headeroauth, headers=headers, verify=False)
         return r.content
     
     def rename_file(self, file_id, file_name, access_token_key, access_token_secret):
@@ -85,7 +85,7 @@ class Api:
             return json.dumps({'error':'nothing to update'})
         
         data = json.dumps({'name':file_name})
-        r = requests.put(url, data=data, auth=headeroauth, headers=headers)
+        r = requests.put(url, data=data, auth=headeroauth, headers=headers, verify=False)
         return r.content
     
     def download_file(self, file_id, access_token_key, access_token_secret):
@@ -94,7 +94,7 @@ class Api:
          
         url = self.DEFAULT_FILE_URL+file_id+'/data'
  
-        r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
+        r = requests.get(url, auth=headeroauth, headers=headers, stream=False, verify=False)
     
         return r.content
 
@@ -104,7 +104,7 @@ class Api:
 
         url = self.DEFAULT_FILE_URL+file_id+'/data'
 
-        r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
+        r = requests.get(url, auth=headeroauth, headers=headers, stream=False, verify=False)
 
         content_type = r.headers.get('content-type')
         pdf64 = b64encode(r.content)
@@ -117,7 +117,7 @@ class Api:
          
         url = self.DEFAULT_FILE_URL+file_id+'/data'
          
-        r = requests.get(url, auth=headeroauth, headers=headers, stream=False)
+        r = requests.get(url, auth=headeroauth, headers=headers, stream=False, verify=False)
         content_type = r.headers.get('content-type')
         image64 = b64encode(r.content)
         image = "data:"+content_type+";base64,"+image64
@@ -128,7 +128,7 @@ class Api:
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
          
         url = self.DEFAULT_FILE_URL+file_id
-        r = requests.get(url, auth=headeroauth, headers=headers)
+        r = requests.get(url, auth=headeroauth, headers=headers, verify=False)
         response = r.status_code
  
         flist = []
@@ -151,7 +151,7 @@ class Api:
          
         data = json.dumps(data)
         url = settings.URL_STACKSYNC + '/folder'
-        r = requests.post(url,data=data, auth=headeroauth, headers=headers)
+        r = requests.post(url,data=data, auth=headeroauth, headers=headers, verify=False)
  
         response = r.status_code
         if response == 200:
@@ -165,7 +165,7 @@ class Api:
 
         json_payload = json.dumps(allowed_user_emails)
 
-        r = requests.post(url, data=json_payload, auth=headeroauth, headers=headers)
+        r = requests.post(url, data=json_payload, auth=headeroauth, headers=headers, verify=False)
         return r
 
     def get_members_of_folder(self, folder_id, access_token_key=None, access_token_secret=None):
@@ -173,7 +173,7 @@ class Api:
         headeroauth, headers = self.get_oauth_headers(access_token_key, access_token_secret)
         url = self.DEFAULT_FOLDER_URL + str(folder_id) + '/members'
 
-        response = requests.get(url, auth=headeroauth, headers=headers)
+        response = requests.get(url, auth=headeroauth, headers=headers, verify=False)
 
         if response.status_code == 200:
             return response.json()

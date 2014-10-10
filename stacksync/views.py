@@ -55,7 +55,7 @@ def log_in(request):
             oauth = OAuth1(client_key="b3af4e669daf880fb16563e6f36051b105188d413", client_secret="c168e65c18d75b35d8999b534a3776cf", callback_uri='oob')
             headers = {"STACKSYNC_API":"v2"}
      
-            r = requests.post(url=settings.STACKSYNC_REQUEST_TOKEN_ENDPOINT, auth=oauth, headers=headers)
+            r = requests.post(url=settings.STACKSYNC_REQUEST_TOKEN_ENDPOINT, auth=oauth, headers=headers, verify=False)
             var = r.content
      
             credentials = parse_qs(r.content)
@@ -66,7 +66,7 @@ def log_in(request):
             authorize_url = authorize_url + resource_owner_key
             params = urllib.urlencode({'email': username, 'password': password, 'permission':'allow'})
             headers = {"Content-Type":"application/x-www-form-urlencoded", "STACKSYNC_API":"v2"}
-            response = requests.post(authorize_url, data=params, headers=headers)
+            response = requests.post(authorize_url, data=params, headers=headers, verify=False)
      
             if "application/x-www-form-urlencoded" == response.headers['Content-Type']:
                 parameters = parse_qs(response.content)
@@ -78,7 +78,7 @@ def log_in(request):
                        resource_owner_secret=resource_owner_secret,
                        verifier=verifier,
                        callback_uri='oob')
-                r = requests.post(url=settings.STACKSYNC_ACCESS_TOKEN_ENDPOINT, auth=oauth2, headers=headers)
+                r = requests.post(url=settings.STACKSYNC_ACCESS_TOKEN_ENDPOINT, auth=oauth2, headers=headers, verify=False)
                 credentials = parse_qs(r.content)
                 resource_owner_key = credentials.get('oauth_token')[0]
                 resource_owner_secret = credentials.get('oauth_token_secret')[0]
