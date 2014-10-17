@@ -298,7 +298,7 @@ def share_folder(request, folder_id):
         message = {'status_code': response.status_code, 'content': response.content}
 
     except ValidationError as e:
-        message = str(e) + user
+        message = {'content': e.message + " " + user}
     except Exception as ex:
         message = str(ex)
 
